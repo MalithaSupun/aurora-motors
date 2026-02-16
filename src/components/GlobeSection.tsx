@@ -1,182 +1,112 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as THREE from "three";
 import { initGSAP } from "@/lib/gsap";
 
-const createPointOnSphere = (radius: number) => {
-  const theta = Math.random() * Math.PI * 2;
-  const phi = Math.acos(2 * Math.random() - 1);
+const TOTAL_THIRD_FRAMES = 192;
 
-  return new THREE.Vector3(
-    radius * Math.sin(phi) * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta),
-  );
-};
+const getThirdFrameSource = (index: number) =>
+  `/frames/third/ezgif-frame-${String(index).padStart(3, "0")}.jpg`;
 
-const createNetworkLineGeometry = (radius: number, pointCount: number) => {
-  const points = Array.from({ length: pointCount }, () => createPointOnSphere(radius));
-  const positions: number[] = [];
-
-  points.forEach((point, index) => {
-    points
-      .filter((_, pointIndex) => pointIndex !== index)
-      .sort((a, b) => point.distanceTo(a) - point.distanceTo(b))
-      .slice(0, 3)
-      .forEach((neighbor) => {
-        positions.push(
-          point.x,
-          point.y,
-          point.z,
-          neighbor.x,
-          neighbor.y,
-          neighbor.z,
-        );
-      });
-  });
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3),
-  );
-  return geometry;
-};
-
-type Disposable = {
-  dispose: () => void;
-};
-
-const isDisposable = (value: unknown): value is Disposable => {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "dispose" in value &&
-    typeof (value as Disposable).dispose === "function"
-  );
-};
-
-const disposeMaterial = (material: unknown) => {
-  const materials = Array.isArray(material) ? material : [material];
-  materials.forEach((instance) => {
-    if (isDisposable(instance)) {
-      instance.dispose();
-    }
-  });
-};
+const CITIES = ["Monaco", "Dubai", "Singapore", "London", "Los Angeles"];
 
 export default function GlobeSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const mountRef = useRef<HTMLDivElement>(null);
+  const backgroundCanvasRef = useRef<HTMLCanvasElement>(null);
+  const backgroundImagesRef = useRef<HTMLImageElement[]>([]);
+  const frameStateRef = useRef({
+    current: 1,
+    target: 1,
+  });
 
   useEffect(() => {
     const { gsap } = initGSAP();
     const section = sectionRef.current;
-    const mount = mountRef.current;
-    if (!section || !mount) {
+    const backgroundCanvas = backgroundCanvasRef.current;
+    if (!section || !backgroundCanvas) {
       return;
     }
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      42,
-      mount.clientWidth / mount.clientHeight,
-      0.1,
-      100,
-    );
-    camera.position.set(0, 0.2, 4.8);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(mount.clientWidth, mount.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    mount.appendChild(renderer.domElement);
-
-    const globeGroup = new THREE.Group();
-    scene.add(globeGroup);
-
-    const globeGeometry = new THREE.SphereGeometry(1.35, 64, 64);
-    const globeMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x6a9dff,
-      roughness: 0.2,
-      metalness: 0.18,
-      transmission: 0.23,
-      transparent: true,
-      opacity: 0.84,
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.22,
-      emissive: 0x173764,
-      emissiveIntensity: 0.2,
-    });
-    const globe = new THREE.Mesh(globeGeometry, globeMaterial);
-    globeGroup.add(globe);
-
-    const wireGeometry = new THREE.WireframeGeometry(
-      new THREE.SphereGeometry(1.38, 36, 36),
-    );
-    const wireMaterial = new THREE.LineBasicMaterial({
-      color: 0x8eb9ff,
-      transparent: true,
-      opacity: 0.33,
-    });
-    const wireframe = new THREE.LineSegments(wireGeometry, wireMaterial);
-    globeGroup.add(wireframe);
-
-    const networkGeometry = createNetworkLineGeometry(1.42, 56);
-    const networkMaterial = new THREE.LineBasicMaterial({
-      color: 0x9ac1ff,
-      transparent: true,
-      opacity: 0.24,
-    });
-    const networkLines = new THREE.LineSegments(networkGeometry, networkMaterial);
-    globeGroup.add(networkLines);
-
-    const starsGeometry = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(900);
-    for (let i = 0; i < starPositions.length; i += 3) {
-      starPositions[i] = (Math.random() - 0.5) * 18;
-      starPositions[i + 1] = (Math.random() - 0.5) * 12;
-      starPositions[i + 2] = -4 - Math.random() * 8;
+    const context2d = backgroundCanvas.getContext("2d");
+    if (!context2d) {
+      return;
     }
-    starsGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    const starsMaterial = new THREE.PointsMaterial({
-      color: 0xe7efff,
-      size: 0.03,
-      transparent: true,
-      opacity: 0.72,
+
+    const renderFrame = (frame: number) => {
+      const frameIndex = Math.max(1, Math.min(TOTAL_THIRD_FRAMES, Math.round(frame)));
+      const image = backgroundImagesRef.current[frameIndex - 1];
+      if (!image || !image.complete || !image.naturalWidth) {
+        return;
+      }
+
+      const width = backgroundCanvas.width;
+      const height = backgroundCanvas.height;
+      context2d.clearRect(0, 0, width, height);
+
+      const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+      const drawWidth = image.naturalWidth * scale;
+      const drawHeight = image.naturalHeight * scale;
+      const x = (width - drawWidth) / 2;
+      const y = (height - drawHeight) / 2;
+      context2d.drawImage(image, x, y, drawWidth, drawHeight);
+    };
+
+    const updateCanvasSize = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const width = section.clientWidth;
+      const height = section.clientHeight;
+
+      backgroundCanvas.width = Math.floor(width * ratio);
+      backgroundCanvas.height = Math.floor(height * ratio);
+      backgroundCanvas.style.width = `${width}px`;
+      backgroundCanvas.style.height = `${height}px`;
+
+      renderFrame(frameStateRef.current.current);
+    };
+
+    backgroundImagesRef.current = Array.from({ length: TOTAL_THIRD_FRAMES }, (_, i) => {
+      const image = new Image();
+      image.src = getThirdFrameSource(i + 1);
+      image.onload = () => {
+        if (i === 0) {
+          updateCanvasSize();
+          renderFrame(frameStateRef.current.current);
+        }
+      };
+      return image;
     });
-    const stars = new THREE.Points(starsGeometry, starsMaterial);
-    scene.add(stars);
 
-    scene.add(new THREE.AmbientLight(0xcdd9ff, 0.78));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.05);
-    keyLight.position.set(2, 3, 4);
-    scene.add(keyLight);
+    updateCanvasSize();
+    window.addEventListener("resize", updateCanvasSize);
 
-    const clock = new THREE.Clock();
-    let animationFrame = 0;
-
-    const render = () => {
-      animationFrame = window.requestAnimationFrame(render);
-      const elapsed = clock.getElapsedTime();
-      globeGroup.rotation.y += 0.0018;
-      globeGroup.rotation.x = Math.sin(elapsed * 0.32) * 0.08;
-      wireframe.rotation.y -= 0.0008;
-      renderer.render(scene, camera);
-    };
-    render();
-
-    const resize = () => {
-      camera.aspect = mount.clientWidth / mount.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(mount.clientWidth, mount.clientHeight);
-    };
-    window.addEventListener("resize", resize);
+    let smoothTick: (() => void) | null = null;
 
     const context = gsap.context(() => {
-      gsap.to(globeGroup.rotation, {
-        y: "+=1.8",
+      gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+          onUpdate: (self) => {
+            frameStateRef.current.target =
+              1 + self.progress * (TOTAL_THIRD_FRAMES - 1);
+          },
+        },
+      });
+
+      smoothTick = () => {
+        const state = frameStateRef.current;
+        state.current += (state.target - state.current) * 0.16;
+        if (Math.abs(state.target - state.current) < 0.01) {
+          state.current = state.target;
+        }
+        renderFrame(state.current);
+      };
+      gsap.ticker.add(smoothTick);
+
+      gsap.to(backgroundCanvas, {
+        scale: 1.05,
         ease: "none",
         scrollTrigger: {
           trigger: section,
@@ -193,7 +123,7 @@ export default function GlobeSection() {
           y: 0,
           opacity: 1,
           duration: 0.9,
-          stagger: 0.11,
+          stagger: 0.1,
           ease: "power3.out",
           scrollTrigger: {
             trigger: section,
@@ -206,28 +136,24 @@ export default function GlobeSection() {
 
     return () => {
       context.revert();
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener("resize", resize);
-
-      globeGeometry.dispose();
-      wireGeometry.dispose();
-      networkGeometry.dispose();
-      starsGeometry.dispose();
-      disposeMaterial(globeMaterial);
-      disposeMaterial(wireMaterial);
-      disposeMaterial(networkMaterial);
-      disposeMaterial(starsMaterial);
-
-      renderer.dispose();
-      if (mount.contains(renderer.domElement)) {
-        mount.removeChild(renderer.domElement);
+      if (smoothTick) {
+        gsap.ticker.remove(smoothTick);
       }
+      window.removeEventListener("resize", updateCanvasSize);
     };
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-24 md:py-32">
-      <div className="section-shell grid items-center gap-10 lg:grid-cols-[1fr_1.2fr]">
+    <section ref={sectionRef} className="relative overflow-hidden py-24 md:py-32">
+      <canvas
+        ref={backgroundCanvasRef}
+        className="absolute inset-0 h-full w-full"
+        aria-label="Global presence cinematic background sequence"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/86 via-black/55 to-black/80" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/76 via-black/24 to-black/38" />
+
+      <div className="section-shell relative z-10 grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
           <p
             data-globe-reveal
@@ -243,13 +169,13 @@ export default function GlobeSection() {
           </h2>
           <p
             data-globe-reveal
-            className="mt-5 max-w-lg text-sm leading-relaxed text-mist/90 md:text-base"
+            className="mt-5 max-w-xl text-sm leading-relaxed text-mist/90 md:text-base"
           >
             Aurora Motors operates private delivery and concierge service centers in
             London, Dubai, Singapore, Monaco, and Los Angeles.
           </p>
           <div data-globe-reveal className="mt-8 flex flex-wrap gap-3 text-xs">
-            {["Monaco", "Dubai", "Singapore", "London", "Los Angeles"].map((city) => (
+            {CITIES.map((city) => (
               <span
                 key={city}
                 className="rounded-full border border-signal/30 bg-signal/10 px-4 py-2 tracking-[0.14em] text-signal uppercase"
@@ -260,9 +186,31 @@ export default function GlobeSection() {
           </div>
         </div>
 
-        <div className="premium-border relative h-[360px] overflow-hidden rounded-3xl md:h-[500px]">
-          <div ref={mountRef} className="h-full w-full" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10" />
+        <div className="premium-border rounded-3xl p-6 md:p-8">
+          <p
+            data-globe-reveal
+            className="text-xs font-semibold tracking-[0.22em] text-platinum uppercase"
+          >
+            Service Network
+          </p>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+              <p className="text-xs text-platinum/80 uppercase">Live Hubs</p>
+              <p className="mt-2 text-3xl font-semibold text-pearl">05</p>
+            </div>
+            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+              <p className="text-xs text-platinum/80 uppercase">24/7 Support</p>
+              <p className="mt-2 text-3xl font-semibold text-pearl">Yes</p>
+            </div>
+            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+              <p className="text-xs text-platinum/80 uppercase">Avg Delivery</p>
+              <p className="mt-2 text-3xl font-semibold text-pearl">11d</p>
+            </div>
+            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+              <p className="text-xs text-platinum/80 uppercase">Track Access</p>
+              <p className="mt-2 text-3xl font-semibold text-pearl">Global</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
