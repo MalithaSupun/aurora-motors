@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { initGSAP } from "@/lib/gsap";
+import { createFramePreloader, type FramePreloader } from "@/lib/framePreloader";
 
 const TOTAL_THIRD_FRAMES = 192;
 
@@ -13,14 +14,12 @@ const CITIES = ["Monaco", "Dubai", "Singapore", "London", "Los Angeles"];
 export default function GlobeSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const backgroundCanvasRef = useRef<HTMLCanvasElement>(null);
-  const backgroundImagesRef = useRef<HTMLImageElement[]>([]);
-  const frameStateRef = useRef({
-    current: 1,
-    target: 1,
-  });
+  const preloaderRef = useRef<FramePreloader | null>(null);
+  const frameStateRef = useRef({ index: 1 });
+  const hasStartedPreloadRef = useRef(false);
 
   useEffect(() => {
-    const { gsap } = initGSAP();
+    const { gsap, ScrollTrigger } = initGSAP();
     const section = sectionRef.current;
     const backgroundCanvas = backgroundCanvasRef.current;
     if (!section || !backgroundCanvas) {
@@ -34,7 +33,13 @@ export default function GlobeSection() {
 
     const renderFrame = (frame: number) => {
       const frameIndex = Math.max(1, Math.min(TOTAL_THIRD_FRAMES, Math.round(frame)));
-      const image = backgroundImagesRef.current[frameIndex - 1];
+      const preloader = preloaderRef.current;
+      if (!preloader) {
+        return;
+      }
+
+      preloader.warm(frameIndex, 2);
+      const image = preloader.getFrame(frameIndex);
       if (!image || !image.complete || !image.naturalWidth) {
         return;
       }
@@ -52,7 +57,7 @@ export default function GlobeSection() {
     };
 
     const updateCanvasSize = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
       const width = section.clientWidth;
       const height = section.clientHeight;
 
@@ -61,49 +66,59 @@ export default function GlobeSection() {
       backgroundCanvas.style.width = `${width}px`;
       backgroundCanvas.style.height = `${height}px`;
 
-      renderFrame(frameStateRef.current.current);
+      renderFrame(frameStateRef.current.index);
     };
 
-    backgroundImagesRef.current = Array.from({ length: TOTAL_THIRD_FRAMES }, (_, i) => {
-      const image = new Image();
-      image.src = getThirdFrameSource(i + 1);
-      image.onload = () => {
-        if (i === 0) {
+    preloaderRef.current = createFramePreloader({
+      frameCount: TOTAL_THIRD_FRAMES,
+      getFrameSource: getThirdFrameSource,
+      eagerCount: 8,
+      batchSize: 6,
+      batchDelayMs: 34,
+      onFrameLoad: (loadedFrame) => {
+        if (loadedFrame === 1) {
           updateCanvasSize();
-          renderFrame(frameStateRef.current.current);
         }
-      };
-      return image;
+
+        if (Math.abs(loadedFrame - Math.round(frameStateRef.current.index)) <= 1) {
+          renderFrame(frameStateRef.current.index);
+        }
+      },
     });
+    preloaderRef.current.warm(1, 0);
 
     updateCanvasSize();
     window.addEventListener("resize", updateCanvasSize);
 
-    let smoothTick: (() => void) | null = null;
-
     const context = gsap.context(() => {
-      gsap.timeline({
+      const startPreload = () => {
+        if (hasStartedPreloadRef.current) {
+          return;
+        }
+        hasStartedPreloadRef.current = true;
+        preloaderRef.current?.start();
+      };
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top bottom",
+        once: true,
+        onEnter: startPreload,
+      });
+
+      gsap.to(frameStateRef.current, {
+        index: TOTAL_THIRD_FRAMES,
+        ease: "none",
         scrollTrigger: {
           trigger: section,
           start: "top bottom",
           end: "bottom top",
           scrub: true,
-          onUpdate: (self) => {
-            frameStateRef.current.target =
-              1 + self.progress * (TOTAL_THIRD_FRAMES - 1);
+          onUpdate: () => {
+            renderFrame(frameStateRef.current.index);
           },
         },
       });
-
-      smoothTick = () => {
-        const state = frameStateRef.current;
-        state.current += (state.target - state.current) * 0.16;
-        if (Math.abs(state.target - state.current) < 0.01) {
-          state.current = state.target;
-        }
-        renderFrame(state.current);
-      };
-      gsap.ticker.add(smoothTick);
 
       gsap.to(backgroundCanvas, {
         scale: 1.05,
@@ -136,10 +151,10 @@ export default function GlobeSection() {
 
     return () => {
       context.revert();
-      if (smoothTick) {
-        gsap.ticker.remove(smoothTick);
-      }
       window.removeEventListener("resize", updateCanvasSize);
+      preloaderRef.current?.dispose();
+      preloaderRef.current = null;
+      hasStartedPreloadRef.current = false;
     };
   }, []);
 

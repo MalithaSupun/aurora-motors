@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { initGSAP } from "@/lib/gsap";
+import { createFramePreloader, type FramePreloader } from "@/lib/framePreloader";
 
 const TOTAL_SECOND_FRAMES = 192;
 
@@ -12,14 +13,12 @@ export default function BlueprintSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const realisticCanvasRef = useRef<HTMLCanvasElement>(null);
   const blueprintCanvasRef = useRef<HTMLCanvasElement>(null);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const frameStateRef = useRef({
-    current: 1,
-    target: 1,
-  });
+  const preloaderRef = useRef<FramePreloader | null>(null);
+  const frameStateRef = useRef({ index: 1 });
+  const hasStartedPreloadRef = useRef(false);
 
   useEffect(() => {
-    const { gsap } = initGSAP();
+    const { gsap, ScrollTrigger } = initGSAP();
     const section = sectionRef.current;
     const realisticCanvas = realisticCanvasRef.current;
     const blueprintCanvas = blueprintCanvasRef.current;
@@ -54,7 +53,13 @@ export default function BlueprintSection() {
 
     const renderFrame = (frame: number) => {
       const frameIndex = Math.max(1, Math.min(TOTAL_SECOND_FRAMES, Math.round(frame)));
-      const image = imagesRef.current[frameIndex - 1];
+      const preloader = preloaderRef.current;
+      if (!preloader) {
+        return;
+      }
+
+      preloader.warm(frameIndex, 2);
+      const image = preloader.getFrame(frameIndex);
 
       if (!image || !image.complete || !image.naturalWidth) {
         return;
@@ -65,7 +70,7 @@ export default function BlueprintSection() {
     };
 
     const updateCanvasSize = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
       const width = section.clientWidth;
       const height = section.clientHeight;
 
@@ -79,50 +84,58 @@ export default function BlueprintSection() {
       blueprintCanvas.style.width = `${width}px`;
       blueprintCanvas.style.height = `${height}px`;
 
-      renderFrame(frameStateRef.current.current);
+      renderFrame(frameStateRef.current.index);
     };
 
-    imagesRef.current = Array.from({ length: TOTAL_SECOND_FRAMES }, (_, i) => {
-      const image = new Image();
-      image.src = getSecondFrameSource(i + 1);
-      image.onload = () => {
-        if (i === 0) {
+    preloaderRef.current = createFramePreloader({
+      frameCount: TOTAL_SECOND_FRAMES,
+      getFrameSource: getSecondFrameSource,
+      eagerCount: 8,
+      batchSize: 6,
+      batchDelayMs: 34,
+      onFrameLoad: (loadedFrame) => {
+        if (loadedFrame === 1) {
           updateCanvasSize();
-          renderFrame(frameStateRef.current.current);
         }
-      };
-      return image;
+
+        if (Math.abs(loadedFrame - Math.round(frameStateRef.current.index)) <= 1) {
+          renderFrame(frameStateRef.current.index);
+        }
+      },
     });
+    preloaderRef.current.warm(1, 0);
 
     updateCanvasSize();
 
-    let smoothTick: (() => void) | null = null;
-
     const context = gsap.context(() => {
-      const frameDriver = gsap.timeline({
+      const startPreload = () => {
+        if (hasStartedPreloadRef.current) {
+          return;
+        }
+        hasStartedPreloadRef.current = true;
+        preloaderRef.current?.start();
+      };
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top bottom",
+        once: true,
+        onEnter: startPreload,
+      });
+
+      gsap.to(frameStateRef.current, {
+        index: TOTAL_SECOND_FRAMES,
+        ease: "none",
         scrollTrigger: {
           trigger: section,
           start: "top bottom",
           end: "bottom top",
           scrub: true,
-          onUpdate: (self) => {
-            frameStateRef.current.target =
-              1 + self.progress * (TOTAL_SECOND_FRAMES - 1);
+          onUpdate: () => {
+            renderFrame(frameStateRef.current.index);
           },
         },
       });
-
-      frameDriver.to({}, { duration: 1 });
-
-      smoothTick = () => {
-        const state = frameStateRef.current;
-        state.current += (state.target - state.current) * 0.14;
-        if (Math.abs(state.target - state.current) < 0.01) {
-          state.current = state.target;
-        }
-        renderFrame(state.current);
-      };
-      gsap.ticker.add(smoothTick);
 
       gsap.fromTo(
         realisticCanvas,
@@ -178,9 +191,9 @@ export default function BlueprintSection() {
 
     return () => {
       window.removeEventListener("resize", updateCanvasSize);
-      if (smoothTick) {
-        gsap.ticker.remove(smoothTick);
-      }
+      preloaderRef.current?.dispose();
+      preloaderRef.current = null;
+      hasStartedPreloadRef.current = false;
       context.revert();
     };
   }, []);

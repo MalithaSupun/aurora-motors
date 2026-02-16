@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { initGSAP } from "@/lib/gsap";
+import { createFramePreloader, type FramePreloader } from "@/lib/framePreloader";
 
 const TOTAL_FRAMES = 192;
 
@@ -14,7 +15,7 @@ export default function Hero() {
   const copyWrapRef = useRef<HTMLDivElement>(null);
   const primaryCopyRef = useRef<HTMLDivElement>(null);
   const secondaryCopyRef = useRef<HTMLDivElement>(null);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const preloaderRef = useRef<FramePreloader | null>(null);
   const frameRef = useRef({ index: 1 });
 
   useEffect(() => {
@@ -35,7 +36,15 @@ export default function Hero() {
     }
 
     const renderFrame = (frame: number) => {
-      const image = imagesRef.current[Math.round(frame) - 1];
+      const frameIndex = Math.max(1, Math.min(TOTAL_FRAMES, Math.round(frame)));
+      const preloader = preloaderRef.current;
+      if (!preloader) {
+        return;
+      }
+
+      preloader.warm(frameIndex, 2);
+
+      const image = preloader.getFrame(frameIndex);
       if (!image || !image.complete || !image.naturalWidth) {
         return;
       }
@@ -54,7 +63,7 @@ export default function Hero() {
     };
 
     const updateCanvasSize = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.floor(window.innerWidth * ratio);
       canvas.height = Math.floor(window.innerHeight * ratio);
       canvas.style.width = `${window.innerWidth}px`;
@@ -62,17 +71,23 @@ export default function Hero() {
       renderFrame(frameRef.current.index);
     };
 
-    imagesRef.current = Array.from({ length: TOTAL_FRAMES }, (_, i) => {
-      const image = new Image();
-      image.src = getFrameSource(i + 1);
-      image.onload = () => {
-        if (i === 0) {
+    preloaderRef.current = createFramePreloader({
+      frameCount: TOTAL_FRAMES,
+      getFrameSource,
+      eagerCount: 32,
+      batchSize: 10,
+      batchDelayMs: 28,
+      onFrameLoad: (loadedFrame) => {
+        if (loadedFrame === 1) {
           updateCanvasSize();
+        }
+
+        if (Math.abs(loadedFrame - Math.round(frameRef.current.index)) <= 1) {
           renderFrame(frameRef.current.index);
         }
-      };
-      return image;
+      },
     });
+    preloaderRef.current.start();
 
     updateCanvasSize();
 
@@ -193,6 +208,8 @@ export default function Hero() {
 
     return () => {
       window.removeEventListener("resize", updateCanvasSize);
+      preloaderRef.current?.dispose();
+      preloaderRef.current = null;
       gsapContext.revert();
     };
   }, []);
