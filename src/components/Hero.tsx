@@ -224,28 +224,28 @@ export default function Hero() {
         data-hero-overlay
         className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50"
       />
-      <div className="section-shell relative z-10 flex h-full flex-col justify-end pb-16 md:pb-20">
+      <div className="section-shell relative z-10 flex h-full flex-col justify-end pb-14 md:pb-20">
         <div
           ref={copyWrapRef}
-          className="hero-copy relative max-w-5xl min-h-[440px] will-change-transform md:min-h-[480px]"
+          className="hero-copy relative max-w-5xl min-h-[440px] will-change-transform md:min-h-[500px]"
         >
           <div ref={primaryCopyRef}>
             <p
               data-hero-reveal
-              className="mb-4 inline-flex items-center gap-3 rounded-full border border-white/20 bg-black/30 px-4 py-2 text-xs font-semibold tracking-[0.28em] text-accent-soft uppercase"
+              className="section-kicker mb-4"
             >
               2026 Signature Release
             </p>
             <h1
               data-hero-reveal
-              className="display-title text-[2.35rem] font-semibold text-pearl md:text-6xl lg:text-7xl"
+              className="display-title max-w-4xl text-[2.35rem] font-semibold text-pearl md:text-6xl lg:text-7xl"
             >
               Aurora Velocity
-              <span className="block text-platinum">Engineered Like Cinema</span>
+              <span className="mt-1 block text-platinum">Engineered Like Cinema</span>
             </h1>
             <p
               data-hero-reveal
-              className="mt-5 max-w-xl text-sm leading-relaxed text-mist/90 md:text-base"
+              className="section-copy mt-5 max-w-2xl text-sm md:text-base"
             >
               A hand-built performance coupe with aerospace-grade carbon architecture,
               adaptive dynamics, and a cabin sculpted in Italian Alcantara.
@@ -253,13 +253,13 @@ export default function Hero() {
             <div data-hero-reveal className="mt-8 flex flex-wrap gap-4">
               <button
                 type="button"
-                className="accent-ring rounded-full bg-accent px-7 py-3 text-xs font-semibold tracking-[0.24em] text-black uppercase transition hover:-translate-y-0.5 hover:bg-accent-soft"
+                className="action-primary accent-ring"
               >
                 Reserve Private Viewing
               </button>
               <button
                 type="button"
-                className="rounded-full border border-platinum/40 bg-black/25 px-7 py-3 text-xs font-semibold tracking-[0.24em] text-platinum uppercase transition hover:border-accent hover:text-accent-soft"
+                className="action-secondary"
               >
                 Download Brochure
               </button>
@@ -268,24 +268,24 @@ export default function Hero() {
 
           <div
             ref={secondaryCopyRef}
-            className="premium-border pointer-events-none absolute inset-x-0 bottom-0 max-w-3xl rounded-2xl p-5 md:p-6"
+            className="premium-border pointer-events-none absolute inset-x-0 bottom-0 max-w-3xl rounded-2xl p-5 md:p-7"
           >
-            <p className="mb-3 text-xs font-semibold tracking-[0.24em] text-platinum uppercase">
+            <p className="section-kicker mb-4 w-fit border-signal/35 bg-signal/10 text-signal">
               Dynamic Chassis Story
             </p>
             <h2 className="display-title text-2xl font-semibold text-pearl md:text-4xl">
               Every Scroll Step Feels
               <span className="block text-accent-soft">Like A Cinematic Reveal</span>
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-mist/90 md:text-base">
+            <p className="section-copy mt-4 max-w-2xl text-sm md:text-base">
               Precision engineering highlights emerge layer by layer while this copy
               glides upward with the hero text.
             </p>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-mist/80 md:text-base">
+            <p className="section-copy mt-3 max-w-2xl text-sm text-mist/80 md:text-base">
               Adaptive suspension intelligence, real-time torque distribution, and aero
               balancing systems continuously tune performance as the narrative unfolds.
             </p>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-platinum/90 md:text-base">
+            <p className="section-copy mt-3 max-w-2xl text-sm text-platinum/90 md:text-base">
               Designed to feel like one uninterrupted automotive film, even while you
               are only scrolling a single section.
             </p>

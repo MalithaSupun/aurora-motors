@@ -69,7 +69,7 @@ export default function InteriorSection() {
         <div className="mb-10 max-w-3xl md:mb-12">
           <p
             data-interior-copy
-            className="mb-4 text-xs font-semibold tracking-[0.26em] text-accent-soft uppercase"
+            className="section-kicker mb-4"
           >
             Interior Craft
           </p>
@@ -81,7 +81,7 @@ export default function InteriorSection() {
           </h2>
           <p
             data-interior-copy
-            className="mt-5 text-sm leading-relaxed text-mist/90 md:text-base"
+            className="section-copy mt-5 text-sm md:text-base"
           >
             Every touch point is wrapped in full-grain leather, matte metal, and
             hand-finished carbon trim. Acoustic glass and adaptive ambience isolate the
@@ -122,7 +122,7 @@ export default function InteriorSection() {
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-                <p className="text-xs font-semibold tracking-[0.18em] text-accent-soft uppercase">
+                <p className="text-xs font-semibold tracking-[0.2em] text-accent-soft uppercase">
                   Suite {index + 1}
                 </p>
                 <p className="mt-2 max-w-xs text-sm text-pearl/95">{item.alt}</p>

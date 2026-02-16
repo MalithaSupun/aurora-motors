@@ -84,7 +84,7 @@ export default function FeaturedCars() {
           <div>
             <p
               data-feature-reveal
-              className="mb-4 text-xs font-semibold tracking-[0.26em] text-accent-soft uppercase"
+              className="section-kicker mb-4"
             >
               Featured Collection
             </p>
@@ -98,7 +98,7 @@ export default function FeaturedCars() {
           <button
             type="button"
             data-feature-reveal
-            className="rounded-full border border-platinum/40 px-6 py-3 text-xs font-semibold tracking-[0.2em] text-platinum uppercase transition hover:border-accent hover:text-accent-soft"
+            className="action-secondary"
           >
             View Full Catalog
           </button>
@@ -109,7 +109,7 @@ export default function FeaturedCars() {
             <article
               key={car.name}
               data-feature-reveal
-              className="group premium-border overflow-hidden rounded-2xl"
+              className="group premium-border overflow-hidden rounded-2xl transition duration-300 hover:-translate-y-1 hover:shadow-luxury"
             >
               <div className="relative h-64 overflow-hidden">
                 <Image
@@ -126,12 +126,12 @@ export default function FeaturedCars() {
                   <h3 className="display-title text-2xl font-semibold text-pearl">
                     {car.name}
                   </h3>
-                  <p className="text-xs tracking-[0.2em] text-platinum uppercase">
+                  <p className="text-xs font-semibold tracking-[0.2em] text-platinum uppercase">
                     {car.year}
                   </p>
                 </div>
                 <div className="mt-5 flex items-center justify-between text-sm text-mist/90">
-                  <p>{car.power}</p>
+                  <p className="text-platinum/90">{car.power}</p>
                   <p className="font-semibold text-accent-soft">{car.price}</p>
                 </div>
               </div>

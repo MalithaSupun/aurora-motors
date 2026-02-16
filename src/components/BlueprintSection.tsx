@@ -221,7 +221,7 @@ export default function BlueprintSection() {
         <div className="premium-border max-w-2xl rounded-3xl p-6 md:p-8">
           <p
             data-blueprint-reveal
-            className="mb-4 text-xs font-semibold tracking-[0.26em] text-signal uppercase"
+            className="section-kicker mb-4 border-signal/35 bg-signal/10 text-signal"
           >
             Precision Draft
           </p>
@@ -233,7 +233,7 @@ export default function BlueprintSection() {
           </h2>
           <p
             data-blueprint-reveal
-            className="mt-5 text-sm leading-relaxed text-mist/90 md:text-base"
+            className="section-copy mt-5 text-sm md:text-base"
           >
             Active aero surfaces and pressure-channel body lines are modeled for
             stability at high velocity while preserving a clean, unmistakable silhouette.

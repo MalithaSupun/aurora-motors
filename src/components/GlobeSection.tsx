@@ -172,7 +172,7 @@ export default function GlobeSection() {
         <div>
           <p
             data-globe-reveal
-            className="mb-4 text-xs font-semibold tracking-[0.26em] text-signal uppercase"
+            className="section-kicker mb-4 border-signal/35 bg-signal/10 text-signal"
           >
             Global Presence
           </p>
@@ -184,17 +184,14 @@ export default function GlobeSection() {
           </h2>
           <p
             data-globe-reveal
-            className="mt-5 max-w-xl text-sm leading-relaxed text-mist/90 md:text-base"
+            className="section-copy mt-5 max-w-xl text-sm md:text-base"
           >
             Aurora Motors operates private delivery and concierge service centers in
             London, Dubai, Singapore, Monaco, and Los Angeles.
           </p>
           <div data-globe-reveal className="mt-8 flex flex-wrap gap-3 text-xs">
             {CITIES.map((city) => (
-              <span
-                key={city}
-                className="rounded-full border border-signal/30 bg-signal/10 px-4 py-2 tracking-[0.14em] text-signal uppercase"
-              >
+              <span key={city} className="stat-pill">
                 {city}
               </span>
             ))}
@@ -209,19 +206,19 @@ export default function GlobeSection() {
             Service Network
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3">
-            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+            <div data-globe-reveal className="surface-muted rounded-xl p-4">
               <p className="text-xs text-platinum/80 uppercase">Live Hubs</p>
               <p className="mt-2 text-3xl font-semibold text-pearl">05</p>
             </div>
-            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+            <div data-globe-reveal className="surface-muted rounded-xl p-4">
               <p className="text-xs text-platinum/80 uppercase">24/7 Support</p>
               <p className="mt-2 text-3xl font-semibold text-pearl">Yes</p>
             </div>
-            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+            <div data-globe-reveal className="surface-muted rounded-xl p-4">
               <p className="text-xs text-platinum/80 uppercase">Avg Delivery</p>
               <p className="mt-2 text-3xl font-semibold text-pearl">11d</p>
             </div>
-            <div data-globe-reveal className="rounded-xl border border-white/12 bg-black/30 p-4">
+            <div data-globe-reveal className="surface-muted rounded-xl p-4">
               <p className="text-xs text-platinum/80 uppercase">Track Access</p>
               <p className="mt-2 text-3xl font-semibold text-pearl">Global</p>
             </div>

@@ -90,13 +90,13 @@ export default function EngineSection() {
           data-engine-reveal
           className="premium-border mb-10 rounded-3xl p-8 shadow-luxury md:mb-12 md:p-10"
         >
-          <p className="mb-4 text-xs font-semibold tracking-[0.26em] text-accent-soft uppercase">
+          <p className="section-kicker mb-4">
             Power Architecture
           </p>
           <h2 className="display-title max-w-3xl text-4xl font-semibold text-pearl md:text-5xl">
             Twin-Turbo V12, Electronically Tuned for Brutal Precision
           </h2>
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-mist/90 md:text-base">
+          <p className="section-copy mt-5 max-w-2xl text-sm md:text-base">
             Variable-geometry boost response, active torque vectoring, and adaptive
             thermal management deliver relentless acceleration with composure.
           </p>
@@ -107,9 +107,9 @@ export default function EngineSection() {
             <article
               key={spec.label}
               data-engine-reveal
-              className="premium-border rounded-2xl px-6 py-7"
+              className="surface-muted rounded-2xl px-6 py-7"
             >
-              <p className="text-xs font-semibold tracking-[0.2em] text-platinum/70 uppercase">
+              <p className="text-xs font-semibold tracking-[0.2em] text-platinum/75 uppercase">
                 {spec.label}
               </p>
               <p className="mt-4 text-3xl font-semibold text-pearl md:text-4xl">

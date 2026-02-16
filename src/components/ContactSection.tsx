@@ -122,7 +122,7 @@ export default function ContactSection() {
           <div>
             <p
               data-contact-reveal
-              className="mb-4 text-xs font-semibold tracking-[0.26em] text-accent-soft uppercase"
+              className="section-kicker mb-4"
             >
               Contact Concierge
             </p>
@@ -134,7 +134,7 @@ export default function ContactSection() {
             </h2>
             <p
               data-contact-reveal
-              className="mt-5 max-w-md text-sm leading-relaxed text-mist/90 md:text-base"
+              className="section-copy mt-5 max-w-md text-sm md:text-base"
             >
               Share your preferred specification and our concierge team will contact
               you within 24 hours for availability and bespoke commissioning.
@@ -148,10 +148,7 @@ export default function ContactSection() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div data-contact-reveal>
-              <label
-                htmlFor="name"
-                className="mb-2 block text-xs tracking-[0.18em] text-platinum uppercase"
-              >
+              <label htmlFor="name" className="form-label">
                 Full Name
               </label>
               <input
@@ -159,17 +156,14 @@ export default function ContactSection() {
                 name="name"
                 value={values.name}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-pearl outline-none transition focus:border-accent"
+                className="form-input"
                 placeholder="Alex Morgan"
               />
-              {errors.name && <p className="mt-1 text-xs text-red-300">{errors.name}</p>}
+              {errors.name && <p className="form-error">{errors.name}</p>}
             </div>
 
             <div data-contact-reveal>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-xs tracking-[0.18em] text-platinum uppercase"
-              >
+              <label htmlFor="email" className="form-label">
                 Email
               </label>
               <input
@@ -178,19 +172,14 @@ export default function ContactSection() {
                 type="email"
                 value={values.email}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-pearl outline-none transition focus:border-accent"
+                className="form-input"
                 placeholder="alex@example.com"
               />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-300">{errors.email}</p>
-              )}
+              {errors.email && <p className="form-error">{errors.email}</p>}
             </div>
 
             <div data-contact-reveal>
-              <label
-                htmlFor="model"
-                className="mb-2 block text-xs tracking-[0.18em] text-platinum uppercase"
-              >
+              <label htmlFor="model" className="form-label">
                 Preferred Model
               </label>
               <input
@@ -198,19 +187,14 @@ export default function ContactSection() {
                 name="model"
                 value={values.model}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-pearl outline-none transition focus:border-accent"
+                className="form-input"
                 placeholder="Aurora Velocity GT"
               />
-              {errors.model && (
-                <p className="mt-1 text-xs text-red-300">{errors.model}</p>
-              )}
+              {errors.model && <p className="form-error">{errors.model}</p>}
             </div>
 
             <div data-contact-reveal>
-              <label
-                htmlFor="message"
-                className="mb-2 block text-xs tracking-[0.18em] text-platinum uppercase"
-              >
+              <label htmlFor="message" className="form-label">
                 Message
               </label>
               <textarea
@@ -219,18 +203,16 @@ export default function ContactSection() {
                 value={values.message}
                 onChange={handleChange}
                 rows={5}
-                className="w-full resize-none rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-pearl outline-none transition focus:border-accent"
+                className="form-input resize-none"
                 placeholder="I am interested in a fully bespoke specification with carbon ceramic package."
               />
-              {errors.message && (
-                <p className="mt-1 text-xs text-red-300">{errors.message}</p>
-              )}
+              {errors.message && <p className="form-error">{errors.message}</p>}
             </div>
 
             <div data-contact-reveal className="pt-2">
               <button
                 type="submit"
-                className="accent-ring w-full rounded-full bg-accent px-6 py-3 text-xs font-semibold tracking-[0.22em] text-black uppercase transition hover:-translate-y-0.5 hover:bg-accent-soft"
+                className="action-primary accent-ring w-full"
               >
                 Submit Inquiry
               </button>
