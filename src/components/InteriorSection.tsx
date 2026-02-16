@@ -5,9 +5,9 @@ import Image from "next/image";
 import { initGSAP } from "@/lib/gsap";
 
 const INTERIOR_IMAGES = [
-  { src: "/images/interior-1.jpg", alt: "Hand-stitched steering wheel detail" },
-  { src: "/images/interior-2.jpg", alt: "Precision digital cockpit and console" },
-  { src: "/images/interior-3.jpg", alt: "Premium leather and ambient interior line" },
+  { src: "/vehicles/vehicle-4.png", alt: "Bespoke grand tourer profile" },
+  { src: "/vehicles/vehicle-2.png", alt: "Precision digital cockpit and console" },
+  { src: "/vehicles/vehicle-3.png", alt: "Luxury performance body architecture" },
 ];
 
 export default function InteriorSection() {

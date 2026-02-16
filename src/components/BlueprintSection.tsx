@@ -1,43 +1,147 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 import { initGSAP } from "@/lib/gsap";
+
+const TOTAL_SECOND_FRAMES = 192;
+
+const getSecondFrameSource = (index: number) =>
+  `/frames/second/ezgif-frame-${String(index).padStart(3, "0")}.jpg`;
 
 export default function BlueprintSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const realisticRef = useRef<HTMLDivElement>(null);
-  const blueprintRef = useRef<HTMLDivElement>(null);
+  const realisticCanvasRef = useRef<HTMLCanvasElement>(null);
+  const blueprintCanvasRef = useRef<HTMLCanvasElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const frameStateRef = useRef({
+    current: 1,
+    target: 1,
+  });
 
   useEffect(() => {
     const { gsap } = initGSAP();
     const section = sectionRef.current;
-    const realistic = realisticRef.current;
-    const blueprint = blueprintRef.current;
+    const realisticCanvas = realisticCanvasRef.current;
+    const blueprintCanvas = blueprintCanvasRef.current;
 
-    if (!section || !realistic || !blueprint) {
+    if (!section || !realisticCanvas || !blueprintCanvas) {
       return;
     }
 
+    const realisticContext = realisticCanvas.getContext("2d");
+    const blueprintContext = blueprintCanvas.getContext("2d");
+
+    if (!realisticContext || !blueprintContext) {
+      return;
+    }
+
+    const drawToCanvas = (
+      context: CanvasRenderingContext2D,
+      canvas: HTMLCanvasElement,
+      image: HTMLImageElement,
+    ) => {
+      const width = canvas.width;
+      const height = canvas.height;
+      context.clearRect(0, 0, width, height);
+
+      const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+      const drawWidth = image.naturalWidth * scale;
+      const drawHeight = image.naturalHeight * scale;
+      const x = (width - drawWidth) / 2;
+      const y = (height - drawHeight) / 2;
+      context.drawImage(image, x, y, drawWidth, drawHeight);
+    };
+
+    const renderFrame = (frame: number) => {
+      const frameIndex = Math.max(1, Math.min(TOTAL_SECOND_FRAMES, Math.round(frame)));
+      const image = imagesRef.current[frameIndex - 1];
+
+      if (!image || !image.complete || !image.naturalWidth) {
+        return;
+      }
+
+      drawToCanvas(realisticContext, realisticCanvas, image);
+      drawToCanvas(blueprintContext, blueprintCanvas, image);
+    };
+
+    const updateCanvasSize = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const width = section.clientWidth;
+      const height = section.clientHeight;
+
+      realisticCanvas.width = Math.floor(width * ratio);
+      realisticCanvas.height = Math.floor(height * ratio);
+      realisticCanvas.style.width = `${width}px`;
+      realisticCanvas.style.height = `${height}px`;
+
+      blueprintCanvas.width = Math.floor(width * ratio);
+      blueprintCanvas.height = Math.floor(height * ratio);
+      blueprintCanvas.style.width = `${width}px`;
+      blueprintCanvas.style.height = `${height}px`;
+
+      renderFrame(frameStateRef.current.current);
+    };
+
+    imagesRef.current = Array.from({ length: TOTAL_SECOND_FRAMES }, (_, i) => {
+      const image = new Image();
+      image.src = getSecondFrameSource(i + 1);
+      image.onload = () => {
+        if (i === 0) {
+          updateCanvasSize();
+          renderFrame(frameStateRef.current.current);
+        }
+      };
+      return image;
+    });
+
+    updateCanvasSize();
+
+    let smoothTick: (() => void) | null = null;
+
     const context = gsap.context(() => {
+      const frameDriver = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+          onUpdate: (self) => {
+            frameStateRef.current.target =
+              1 + self.progress * (TOTAL_SECOND_FRAMES - 1);
+          },
+        },
+      });
+
+      frameDriver.to({}, { duration: 1 });
+
+      smoothTick = () => {
+        const state = frameStateRef.current;
+        state.current += (state.target - state.current) * 0.14;
+        if (Math.abs(state.target - state.current) < 0.01) {
+          state.current = state.target;
+        }
+        renderFrame(state.current);
+      };
+      gsap.ticker.add(smoothTick);
+
       gsap.fromTo(
-        realistic,
+        realisticCanvas,
         { opacity: 1, scale: 1 },
         {
-          opacity: 0.2,
+          opacity: 0.28,
           scale: 1.04,
           ease: "none",
           scrollTrigger: {
             trigger: section,
-            start: "top 65%",
-            end: "bottom 35%",
+            start: "top 70%",
+            end: "bottom 30%",
             scrub: true,
           },
         },
       );
 
       gsap.fromTo(
-        blueprint,
+        blueprintCanvas,
         { opacity: 0, scale: 1.08 },
         {
           opacity: 0.95,
@@ -45,8 +149,8 @@ export default function BlueprintSection() {
           ease: "none",
           scrollTrigger: {
             trigger: section,
-            start: "top 65%",
-            end: "bottom 35%",
+            start: "top 70%",
+            end: "bottom 30%",
             scrub: true,
           },
         },
@@ -70,43 +174,38 @@ export default function BlueprintSection() {
       );
     }, section);
 
+    window.addEventListener("resize", updateCanvasSize);
+
     return () => {
+      window.removeEventListener("resize", updateCanvasSize);
+      if (smoothTick) {
+        gsap.ticker.remove(smoothTick);
+      }
       context.revert();
     };
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-24 md:py-32">
-      <div className="section-shell grid items-center gap-10 lg:grid-cols-[1.25fr_1fr]">
-        <div className="relative aspect-[16/10] overflow-hidden rounded-3xl border border-white/15 bg-black/40 shadow-luxury">
-          <div
-            ref={realisticRef}
-            className="absolute inset-0"
-          >
-            <Image
-              src="/images/car-realistic.jpg"
-              alt="Realistic luxury car render"
-              fill
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="object-cover"
-            />
-          </div>
-          <div
-            ref={blueprintRef}
-            className="absolute inset-0 mix-blend-screen"
-          >
-            <Image
-              src="/images/car-blueprint.png"
-              alt="Technical blueprint overlay"
-              fill
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="object-cover"
-            />
-          </div>
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(138,180,255,0.16)_1px,transparent_1px),linear-gradient(to_bottom,rgba(138,180,255,0.16)_1px,transparent_1px)] bg-[size:36px_36px]" />
-        </div>
+    <section
+      ref={sectionRef}
+      className="relative flex min-h-screen items-center overflow-hidden"
+    >
+      <canvas
+        ref={realisticCanvasRef}
+        className="absolute inset-0 h-full w-full"
+        aria-label="Realistic luxury car motion sequence"
+      />
+      <canvas
+        ref={blueprintCanvasRef}
+        className="absolute inset-0 h-full w-full mix-blend-screen saturate-0 contrast-125 brightness-110 hue-rotate-[150deg]"
+        aria-label="Technical blueprint motion sequence"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(138,180,255,0.16)_1px,transparent_1px),linear-gradient(to_bottom,rgba(138,180,255,0.16)_1px,transparent_1px)] bg-[size:36px_36px]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/88 via-black/46 to-black/74" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/72 via-transparent to-black/40" />
 
-        <div>
+      <div className="section-shell relative z-10 py-24 md:py-32">
+        <div className="premium-border max-w-2xl rounded-3xl p-6 md:p-8">
           <p
             data-blueprint-reveal
             className="mb-4 text-xs font-semibold tracking-[0.26em] text-signal uppercase"
