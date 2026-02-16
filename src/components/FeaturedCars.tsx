@@ -18,28 +18,28 @@ const FEATURED_CARS: FeaturedCar[] = [
     year: "2026",
     power: "920 HP",
     price: "$820,000",
-    image: "/frames/hero/ezgif-frame-146.jpg",
+    image: "/cars/car1.png",
   },
   {
     name: "Aurora Eclipse R",
     year: "2025",
     power: "870 HP",
     price: "$760,000",
-    image: "/frames/hero/ezgif-frame-168.jpg",
+    image: "/cars/car2.png",
   },
   {
     name: "Aurora Atlas S",
     year: "2026",
     power: "790 HP",
     price: "$690,000",
-    image: "/frames/hero/ezgif-frame-182.jpg",
+    image: "/cars/car3.png",
   },
   {
     name: "Aurora Phantom RS",
     year: "2024",
     power: "940 HP",
     price: "$910,000",
-    image: "/frames/hero/ezgif-frame-191.jpg",
+    image: "/cars/car4.png",
   },
 ];
 
