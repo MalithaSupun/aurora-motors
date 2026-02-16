@@ -1,0 +1,84 @@
+@config "../../tailwind.config.mjs";
+@import "tailwindcss";
+
+:root {
+  --obsidian: #05060a;
+  --steel: #12151d;
+  --graphite: #1b1f2b;
+  --pearl: #f8f9ff;
+  --mist: #d6d9e2;
+  --platinum: #c2ccd9;
+  --accent: #a88b5d;
+  --accent-soft: #d0bc96;
+  --signal: #8ab4ff;
+}
+
+@theme inline {
+  --font-sans:
+    "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", "Helvetica", sans-serif;
+  --font-display:
+    "Didot", "Bodoni MT", "Palatino Linotype", "Book Antiqua", "Times New Roman",
+    serif;
+  --font-body:
+    "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", "Helvetica", sans-serif;
+  --color-obsidian: var(--obsidian);
+  --color-steel: var(--steel);
+  --color-graphite: var(--graphite);
+  --color-pearl: var(--pearl);
+  --color-mist: var(--mist);
+  --color-platinum: var(--platinum);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-signal: var(--signal);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  scroll-behavior: auto !important;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1300px 700px at 78% -12%, rgba(168, 139, 93, 0.16), transparent 60%),
+    radial-gradient(1000px 560px at 14% 106%, rgba(138, 180, 255, 0.12), transparent 65%),
+    var(--obsidian);
+  color: var(--pearl);
+  font-family: var(--font-body);
+}
+
+.section-shell {
+  width: min(1240px, 100% - 3rem);
+  margin-inline: auto;
+}
+
+.display-title {
+  font-family: var(--font-display), "Times New Roman", serif;
+  letter-spacing: 0.02em;
+  line-height: 1.06;
+}
+
+.premium-border {
+  border: 1px solid rgba(194, 204, 217, 0.2);
+  background: linear-gradient(
+    135deg,
+    rgba(18, 21, 29, 0.86),
+    rgba(18, 21, 29, 0.66)
+  );
+  backdrop-filter: blur(8px);
+}
+
+.accent-ring {
+  box-shadow:
+    0 0 0 1px rgba(168, 139, 93, 0.4),
+    0 0 32px -18px rgba(168, 139, 93, 0.8);
+}
